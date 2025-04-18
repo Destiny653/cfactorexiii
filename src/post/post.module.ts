@@ -4,7 +4,7 @@ import { PostsController } from './post.controller';
 import { PostsService } from './post.service';
 import { Post, PostSchema } from '../post/Schema/post.schema';
 import { CommentController } from '../comment/comment.controller';
-import { CommentsService } from '../comment/comment.service';
+import { CommentService } from '../comment/comment.service';
 import { Comment, CommentSchema } from '../comment/schema/comment.schema';
 
 @Module({
@@ -15,6 +15,6 @@ import { Comment, CommentSchema } from '../comment/schema/comment.schema';
     ]),
   ],
   controllers: [PostsController, CommentController],
-  providers: [PostsService, CommentsService],
+  providers: [PostsService, CommentService],
 })
-export class PostsModule {}
+export class PostModule {}

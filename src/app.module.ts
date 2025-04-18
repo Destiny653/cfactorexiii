@@ -1,31 +1,32 @@
 import * as dotenv from 'dotenv';
 dotenv.config()
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductModule } from './product/product.module';
-import { PostsModule } from './post/post.module'; 
-import { CommentController } from './comment/comment.controller';
-import { CommentModule } from './comment/comment.module';
-import { CommentsService } from './comment/comment.service'; 
-
-const mongoUri = process.env.MONGODB_URI;
-// if (!mongoUri) {
-//   throw new Error('MONGODB_URI environment variable is not defined');
-// }
+import { PostModule } from './post/post.module';  
+import { CommentModule } from './comment/comment.module'; 
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module'; 
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
+      envFilePath: `.env.${process.env.NODE_ENV || 'Production'}`,
     }),
-    MongooseModule.forRoot(mongoUri || 'mongodb://localhost:27017/dashboard'),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+    }),
     ProductModule,
-    PostsModule,
+    PostModule,
     CommentModule,
+    UserModule,
+    AuthModule,
   ],
-  controllers: [CommentController],
-  providers: [CommentsService],
 })
 export class AppModule {}
