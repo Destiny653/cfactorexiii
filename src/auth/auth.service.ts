@@ -1,26 +1,20 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { User } from '../user/schema/user.schema';
+import { MailService } from './mail/mail.service';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
+    private mailService: MailService,
   ) {}
-  verifyEmail(token: string) {
-    throw new Error('Method not implemented.');
-  }
-  forgotPassword(email: string) {
-    throw new Error('Method not implemented.');
-  }
-  resetPassword(token: string, newPassword: string) {
-    throw new Error('Method not implemented.');
-  }
 
   async validateUser(email: string, pass: string): Promise<any> {
     const user = await this.userService.findByEmail(email);
@@ -37,23 +31,108 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     
-    const payload = { email: user.email, sub: user._id, role: user.role };
+    if (!user.isVerified) {
+      throw new UnauthorizedException('Please verify your email first');
+    }
+    
+    const payload = { 
+      username: user.username, 
+      email: user.email, 
+      sub: user._id, 
+      role: user.role 
+    };
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      }
     };
   }
 
   async register(registerDto: RegisterDto): Promise<User | null> {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
-    return this.userService.createFromRegistration(
+    const verificationToken = randomBytes(32).toString('hex');
+    
+    const user = await this.userService.createFromRegistration(
       {
-      ...registerDto,
-      password: hashedPassword,
+        ...registerDto,
+        password: hashedPassword,
+        verificationToken,
       },
       false, // isVerified
       'user' // role
     );
+
+    // Send verification email
+    await this.mailService.sendVerificationEmail(user.email, verificationToken);
+
+    return user;
   }
 
-  // Add other auth methods like verifyEmail, forgotPassword, etc.
+  async verifyEmail(token: string) {
+   try {
+    const user = await this.userService.findByVerificationToken(token);
+    if (!user) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    if (user.isVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+
+    user.isVerified = true;
+    user.verificationToken = token;
+    await user.save();
+
+    return { message: 'Email successfully verified' };
+   } catch (error) {
+    return {
+      success: false,
+      error: true,
+      message: error.message,
+      status: 500
+    }
+   }
+  }
+  
+  async forgotPassword(email: string) {
+    const user = await this.userService.findByEmail(email);
+    if (!user) {
+      // For security, don't reveal if user doesn't exist
+      return { message: 'If the email exists, a password reset link has been sent' };
+    }
+  
+    const resetToken = randomBytes(32).toString('hex');
+    const resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+  
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = resetPasswordExpires;
+    await user.save();
+  
+    await this.mailService.sendPasswordResetEmail(user.email, resetToken);
+  
+    return { message: 'Password reset link sent to email' };
+  }
+  
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.userService.findByResetToken(token);
+    
+    // Add proper null checks
+    if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+  
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = '';
+    user.resetPasswordExpires = null;
+    await user.save();
+  
+    return { message: 'Password successfully reset' };
+  }
 }
