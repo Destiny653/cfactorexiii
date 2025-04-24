@@ -10,41 +10,41 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  // Enhanced CORS configuration
+  // Enable CORS
   app.enableCors({
-    origin: configService.get('CORS_ORIGIN') || true,
+    origin: configService.get('CORS_ORIGIN') || '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
-    maxAge: 86400, // Cache CORS preflight for 24 hours
+    maxAge: 86400,
   });
 
-  // Static files configuration
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+  // Serve static files
+  const staticPath = join(__dirname, '..', 'uploads');
+  app.useStaticAssets(staticPath, {
     prefix: '/uploads/',
-    maxAge: '30d', // Cache static files for 30 days
-    immutable: true, // For better caching of immutable files
+    maxAge: '30d',
+    immutable: true,
   });
 
-  // Get port from environment or use default
-  const port = configService.get<number>('PORT') || 3000;
+  // Use dynamic port from environment (for Render)
+  const port = Number(process.env.PORT) || configService.get<number>('PORT') || 3000;
+
+  // Start server
+  await app.listen(port, '0.0.0.0');
+  logger.log(`🚀 Server is running on http://0.0.0.0:${port}`);
+  logger.log(`📁 Static files are served from: ${staticPath}`);
 
   // Graceful shutdown
-  process.on('SIGTERM', () => {
-    logger.log('SIGTERM received. Closing server...');
-    app.close().then(() => {
-      logger.log('Server successfully closed');
-      process.exit(0);
-    });
-  });
-
-  await app.listen(port, '0.0.0.0', () => {
-    logger.log(`🚀 Application is running on: http://0.0.0.0:${port}`);
-    logger.log(`📁 Serving static files from: ${join(__dirname, '..', 'uploads')}`);
+  process.on('SIGTERM', async () => {
+    logger.warn('SIGTERM received. Closing server...');
+    await app.close();
+    logger.log('Server closed.');
+    process.exit(0);
   });
 }
 
-bootstrap().catch(err => {
-  console.error('Application failed to start!', err);
+bootstrap().catch((err) => {
+  console.error('🚨 Failed to start application:', err);
   process.exit(1);
 });
