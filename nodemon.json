@@ -1,7 +1,0 @@
-{
-    "watch": ["src"],
-    "ext": "ts,json",
-    "ignore": ["src/**/*.spec.ts", "src/**/*.test.ts"],
-    "exec": "nest start --watch",
-    "delay": "1000"
-  }
