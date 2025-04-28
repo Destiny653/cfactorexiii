@@ -111,12 +111,13 @@ export class AuthService {
     const resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
   
     user.resetPasswordToken = resetToken;
+    user.isVerified = false;
     user.resetPasswordExpires = resetPasswordExpires;
     await user.save();
   
     await this.mailService.sendPasswordResetEmail(user.email, resetToken);
   
-    return { message: 'Password reset link sent to email', token: resetToken };
+    return { message: 'Password reset link sent to email', isVerified:user.isVerified };
   }
   
   async resetPassword(token: string, newPassword: string) {
@@ -129,6 +130,7 @@ export class AuthService {
   
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
+    user.isVerified = true;
     user.resetPasswordToken = '';
     user.resetPasswordExpires = null;
     await user.save();
