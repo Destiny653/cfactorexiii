@@ -33,7 +33,7 @@ export class AuthService {
       }
 
       if (!user.isVerified) {
-         return{ message: 'Email not verified please use a valied email', error: true, status: 401 };
+         return{ message: 'Email not verified please make sure you are using a valied email.', error: true, status: 401 };
       }
 
       const payload = {
