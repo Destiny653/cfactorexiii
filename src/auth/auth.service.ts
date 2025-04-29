@@ -33,7 +33,7 @@ export class AuthService {
       }
 
       if (!user.isVerified) {
-         return{ message: 'Email not verified please make sure you are using a valied email.', error: true, status: 401 };
+        return { message: 'Email not verified please make sure you are using a valied email.', error: true, status: 401 };
       }
 
       const payload = {
@@ -63,9 +63,18 @@ export class AuthService {
     }
   }
 
-  async register(registerDto: RegisterDto): Promise<User | null> {
+
+  async register(registerDto: RegisterDto): Promise<User | null | any> {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const verificationToken = randomBytes(32).toString('hex');
+    const email = registerDto.email
+    const verifyEmail = await this.userService.findByEmail(email);
+    if (verifyEmail) {
+      return {
+        message: 'user already exits please try using another email.'
+      }
+    }
+
 
     const user = await this.userService.createFromRegistration(
       {
