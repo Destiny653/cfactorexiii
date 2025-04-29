@@ -11,20 +11,16 @@ export class ProductController {
     constructor(private readonly productsService: ProductService) { }
     @Post()
     @UseInterceptors(
-      FilesInterceptor('images', 10, multerOptions), // Up to 10 images
-      FileInterceptor('thumbnail', multerOptions) // Single thumbnail
+      FileInterceptor('thumbnail', multerOptions),
+      FilesInterceptor('images', 10, multerOptions)
     )
     async create(
       @Body() createProductDto: CreateProductWithFilesDto,
       @UploadedFiles() images?: Express.Multer.File[],
       @UploadedFile() thumbnail?: Express.Multer.File,
     ) {
-      return await this.productsService.create(createProductDto, {
-        images,
-        thumbnail,
-      });
+      return this.productsService.create(createProductDto, { images, thumbnail });
     }
-
     @Get()
     findAll() {
         return this.productsService.findAll();
