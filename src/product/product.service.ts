@@ -12,13 +12,26 @@ export class ProductService {
     @InjectModel(Product.name) private productModel: Model<Product>,
   ) {}
 
-  async create(createProductDto: CreateProductWithFilesDto, files?: { images?: Express.Multer.File[], thumbnail?: Express.Multer.File }) {
+  async create(createProductDto: CreateProductWithFilesDto, files?: { 
+    images?: Express.Multer.File[], 
+    thumbnail?: Express.Multer.File 
+  }) {
     try {
-      const productData = {
-        ...createProductDto,
-        images: files?.images?.map(file => `${process.env.BASIC_URL}/${file.filename}`),
-        thumbnail: files?.thumbnail ? `${process.env.BASIC_URL}/${files.thumbnail.filename}` : null,
-      };
+      const productData: any = { ...createProductDto };
+  
+      // Handle images
+      if (files?.images) {
+        productData.images = files.images.map(file => 
+          `${process.env.BASIC_URL}/uploads/products/${file.filename}`
+        );
+      }
+  
+      // Handle thumbnail (use first image as thumbnail if not specified)
+      if (files?.thumbnail) {
+        productData.thumbnail = `${process.env.BASIC_URL}/uploads/products/${files.thumbnail.filename}`;
+      } else if (files?.images && files.images.length > 0) {
+        productData.thumbnail = `${process.env.BASIC_URL}/uploads/products/${files.images[0].filename}`;
+      }
   
       return await new this.productModel(productData).save();
     } catch (error) {

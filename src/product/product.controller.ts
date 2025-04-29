@@ -9,21 +9,20 @@ import { CreateProductWithFilesDto } from './dto/create-product-with-files.dto';
 @Controller('products')
 export class ProductController {
     constructor(private readonly productsService: ProductService) { }
-
     @Post()
     @UseInterceptors(
-        FileInterceptor('thumbnail', multerOptions),
-        FilesInterceptor('images', 10, multerOptions),
+      FilesInterceptor('images', 10, multerOptions), // Up to 10 images
+      FileInterceptor('thumbnail', multerOptions) // Single thumbnail
     )
     async create(
-        @Body() CreateProductDto: CreateProductWithFilesDto ,
-        @UploadedFiles() images?: Express.Multer.File[],
-        @UploadedFile() thumbnail?: Express.Multer.File,
+      @Body() createProductDto: CreateProductWithFilesDto,
+      @UploadedFiles() images?: Express.Multer.File[],
+      @UploadedFile() thumbnail?: Express.Multer.File,
     ) {
-        return await this.productsService.create(CreateProductDto, {
-            images,
-            thumbnail,
-        });
+      return await this.productsService.create(createProductDto, {
+        images,
+        thumbnail,
+      });
     }
 
     @Get()
