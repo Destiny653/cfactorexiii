@@ -1,14 +1,17 @@
-// config/multer.config.ts
+import { Logger } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { v4 as uuid } from 'uuid';
 
 export const multerOptions = {
   storage: diskStorage({
-    destination: './uploads/products',
+    destination: './uploads',
     filename: (req, file, cb) => {
+      Logger.log("fileS: ",file)
       const randomName = uuid();
-      return cb(null, `${randomName}${extname(file.originalname)}`);
+      const fullFileName = `${randomName}${extname(file.originalname)}`;
+      Logger.log(`Generated filename: ${fullFileName}`, 'Multer');
+      cb(null, fullFileName);
     },
   }),
   fileFilter: (req, file, cb) => {

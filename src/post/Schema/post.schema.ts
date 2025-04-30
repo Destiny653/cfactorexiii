@@ -19,10 +19,7 @@ export class Post extends Document {
   };
 
   @Prop({ default: 0 })
-  views: number;
-
-  @Prop({ required: true })
-  userId: number;
+  views: number; 
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
