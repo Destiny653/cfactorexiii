@@ -20,6 +20,9 @@ async function bootstrap() {
         ...(configService.get('CORS_ORIGINS')?.split(',') || []),
         'http://localhost:5173',
         'https://localhost:5173',
+        'https://cfactorexi.vercel.app/#',
+        'https://cfactorexi.vercel.app',
+
       ];
       
       if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
