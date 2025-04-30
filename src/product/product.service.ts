@@ -32,12 +32,12 @@ export class ProductService {
       // Handle file uploads
       if (files?.images) {
         productData.images = files.images.map(file =>
-          `/uploads/${file.filename}` // Use relative path
+          `${process.env.BASE_URL}/uploads/${file.filename}` // Use relative path
         );
       }
   
       if (files?.thumbnail) {
-        productData.thumbnail = `/uploads/${files.thumbnail.filename}`;
+        productData.thumbnail = `${process.env.BASE_URL}/uploads/${files.thumbnail.filename}`;
       } else if (files?.images?.length) {
         productData.thumbnail = productData.images[0];
       }
@@ -90,10 +90,10 @@ export class ProductService {
 
       if (files) {
         if (files.images) {
-          updateData.images = files.images.map(file => `/uploads/${file.filename}`);
+          updateData.images = files.images.map(file => `${process.env.BASE_URL}/uploads/${file.filename}`);
         }
         if (files.thumbnail) {
-          updateData.thumbnail = `/uploads/${files.thumbnail.filename}`;
+          updateData.thumbnail = `${process.env.BASE_URL}/uploads/${files.thumbnail.filename}`;
         }
       }
 
