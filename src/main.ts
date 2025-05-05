@@ -57,14 +57,14 @@ async function bootstrap() {
   // Start server
   await app.listen(port, '0.0.0.0');
   logger.log(`🚀 Server is running on http://0.0.0.0:${port}`);
-  logger.log(`📁 Static files are served from: ${staticPath}`);
-  logger.log(`🌍 CORS settings: ${JSON.stringify(corsOptions, null, 2)}`);
+  // logger.log(`📁 Static files are served from: ${staticPath}`);
+  // logger.log(`🌍 CORS settings: ${JSON.stringify(corsOptions, null, 2)}`);
 
   // Graceful shutdown
   process.on('SIGTERM', async () => {
     logger.warn('SIGTERM received. Closing server...');
     await app.close();
-    logger.log('Server closed.');
+    // logger.log('Server closed.');
     process.exit(0);
   });
 }

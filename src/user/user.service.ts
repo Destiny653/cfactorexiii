@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/user.schema';
@@ -39,7 +39,7 @@ export class UserService {
     return this.userModel.find().exec();
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<User | null> { 
     return this.userModel.findById(id).exec();
   }
 
