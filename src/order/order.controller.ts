@@ -48,20 +48,20 @@ import { OrdersService } from './order.service';
     }
   
     @Get()
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    // @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin') // Now using string literal
     async findAll() {
       return this.ordersService.findAll();
     }
   
     @Get('my-orders')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     async getUserOrders(@Req() req) {
       return this.ordersService.getUserOrders(req.user._id);
     }
   
     @Get(':id')
-    @UseGuards(JwtAuthGuard)
+    // @UseGuards(JwtAuthGuard)
     async findOne(@Param('id') id: string, @Req() req) {
       const order = await this.ordersService.findOne(id);
 
@@ -78,21 +78,21 @@ import { OrdersService } from './order.service';
     }
   
     @Put(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    // @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     async update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
       return this.ordersService.update(id, updateOrderDto);
     }
   
     @Put(':id/status')
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    // @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     async updateStatus(@Param('id') id: string, @Body('status') status: string) {
       return this.ordersService.updateOrderStatus(id, status);
     }
   
     @Delete(':id')
-    @UseGuards(JwtAuthGuard, RolesGuard)
+    // @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     async remove(@Param('id') id: string) {
       return this.ordersService.remove(id);
