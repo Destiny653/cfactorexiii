@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, Query, UseGuards, HttpException, HttpStatus, Redirect } from '@nestjs/common';
+import { Controller, Post, Body, Get, Query, UseGuards, HttpException, HttpStatus, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -15,31 +16,25 @@ export class AuthController {
   }
 
   @Get('verify-email')
-  @Redirect() // Will redirect after verification
-  async verifyEmail(@Query('token') token: string) {
+  async verifyEmail(@Query('token') token: string, @Res() res: Response) {
     if (!token) {
-      throw new HttpException(
-        'Verification token is required',
-        HttpStatus.BAD_REQUEST
-      );
+       res.redirect(`${process.env.CORS_ORIGIN}/register?error=Token required`);
+       return {
+        message: 'Invalid token verificaton',
+        success: false,
+        status: 401
+       }
     }
-
-    console.log('Token:', token);
   
     try {
-      const result = await this.authService.verifyEmail(token);
-      console.log('Verification result:', result); 
-      return {
-        url: process.env.FRONTEND_VERIFICATION_SUCCESS_URL || '/verified-success',
-        statusCode: 302,
-        result
-      };
+      await this.authService.verifyEmail(token);
+      // Successful verification - redirect to frontend success page
+      return res.redirect(`${process.env.CORS_ORIGIN}/verification-success`);
     } catch (error) {
-      return {
-        statusCode: 302,
-        message: error.message,
-        url: process.env.FRONTEND_VERIFICATION_FAILURE_URL || '/verified-failed?error=' + encodeURIComponent(error.message),
-      };
+      // Failed verification
+      return res.redirect(
+        `${process.env.CORS_ORIGIN}/verification-failed?error=${encodeURIComponent(error.message)}`
+      );
     }
   }
 

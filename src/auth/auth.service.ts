@@ -33,7 +33,7 @@ export class AuthService {
       }
 
       if (!user.isVerified) {
-        return { message: 'Email not verified please make sure you are using a valied email.', error: true, status: 401 };
+        return { message: 'Email not verified! Check your email and verify.', error: true, status: 401, isVerified:false };
       }
 
       const payload = {
@@ -43,7 +43,9 @@ export class AuthService {
         role: user.role
       };
       return {
+        success: true,
         access_token: this.jwtService.sign(payload),
+        message: 'Login successful',
         user: {
           _id: user._id,
           email: user.email,
@@ -71,6 +73,8 @@ export class AuthService {
     const verifyEmail = await this.userService.findByEmail(email);
     if (verifyEmail) {
       return {
+        error:true,
+        status: 400,
         message: 'user already exits please try using another email.'
       }
     }
@@ -96,7 +100,11 @@ export class AuthService {
     try {
       const user = await this.userService.findByVerificationToken(token);
       if (!user) {
-        throw new BadRequestException('Invalid verification token');
+        return {
+          error:true,
+          status: 400,
+          message:'Invalid token, make sure you are using a valid email!'
+        }
       }
 
       if (user.isVerified) {
@@ -107,7 +115,11 @@ export class AuthService {
       user.verificationToken = token;
       await user.save();
 
-      return { message: 'Email successfully verified' };
+      return { 
+        message: 'Email successfully verified',
+        success: true,
+        status: 200
+      };
     } catch (error) {
       return {
         success: false,
@@ -122,7 +134,11 @@ export class AuthService {
     const user = await this.userService.findByEmail(email);
     if (!user) {
       // For security, don't reveal if user doesn't exist
-      return { message: 'If the email exists, a password reset link has been sent' };
+      return { 
+        message: 'Invalid user email: +email',
+        success: false,
+        status: 400
+      };
     }
 
     const resetToken = randomBytes(32).toString('hex');
@@ -135,7 +151,7 @@ export class AuthService {
 
     await this.mailService.sendPasswordResetEmail(user.email, resetToken);
 
-    return { message: 'Password reset link sent to email', isVerified: user.isVerified, token: resetToken };
+    return { message: 'Password reset link sent to email', isVerified: user.isVerified, token: resetToken, success:true, status:200 };
   }
 
   async resetPassword(token: string, newPassword: string) {
@@ -143,7 +159,10 @@ export class AuthService {
 
     // Add proper null checks
     if (!user || !user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
-      throw new BadRequestException('Invalid or expired reset token');
+      return { 
+        message: 'Invalid or expired password reset token' ,
+         success: false,
+        status: 400 };
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -153,6 +172,6 @@ export class AuthService {
     user.resetPasswordExpires = null;
     await user.save();
 
-    return { message: 'Password successfully reset' };
+    return { message: 'Password successfully reset', success:true, status:200 };
   }
 }

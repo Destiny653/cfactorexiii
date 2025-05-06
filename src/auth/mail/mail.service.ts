@@ -22,18 +22,26 @@ export class MailService {
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Verify Your Email',
-      html: `Click <a href="${verificationUrl}">here</a> to verify your email.`,
+      html: `
+  <p>Click below to verify your email (you'll be automatically redirected):</p>
+  <a href="${verificationUrl}" style="...">Verify Email</a>
+  <p>Or copy this link: ${verificationUrl}</p>
+`
     });
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
-    const resetUrl = `${process.env.BASE_URL}/auth/reset-password?token=${token}`;
+    const resetUrl = `${process.env.CORS_ORIGIN}/reset-password?token=${token}`;
 
     await this.transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: email,
       subject: 'Password Reset Request',
-      html: `Click <a href="${resetUrl}">here</a> to reset your password.`,
+      html: `
+      <p>Click below to reset password:</p>
+      <a href="${resetUrl}" style="...">Verify Email</a>
+      <p>Or copy this link: ${resetUrl}</p>
+    `
     });
   }
 }
