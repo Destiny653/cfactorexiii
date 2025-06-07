@@ -18,8 +18,8 @@ async function bootstrap() {
       
       const allowedOrigins = [
         ...(configService.get('CORS_ORIGINS')?.split(',') || []),
-        'http://localhost:5173',
-        'https://localhost:5173',
+        'http://localhost:4000',
+        'http://localhost:4000/#',
         'https://cfactorexi.vercel.app/#',
         'https://cfactorexi.vercel.app',
 
